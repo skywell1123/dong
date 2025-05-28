@@ -1,85 +1,69 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>동아리 홍보 게시판</title>
-  <style>
-    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
-    h1, h2 { color: #333; }
-    textarea, input, select { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; }
-    button { padding: 10px 20px; cursor: pointer; }
-    .post { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 6px; }
-  </style>
+  <meta charset="UTF-8">
+  <title>Firebase 게시판 예제</title>
 </head>
 <body>
-  <h1>동아리 홍보 게시판</h1>
+  <h1>글 작성</h1>
+  <input type="text" id="title" placeholder="제목"><br>
+  <textarea id="content" placeholder="내용"></textarea><br>
+  <button onclick="submitPost()">작성</button>
 
-  <form id="postForm">
-    <label>동아리 선택</label>
-    <select id="clubSelect" required>
-      <option value="">-- 동아리를 선택하세요 --</option>
-      <option value="개발 동아리">개발 동아리</option>
-      <option value="디자인 동아리">디자인 동아리</option>
-      <option value="음악 동아리">음악 동아리</option>
-      <option value="사진 동아리">사진 동아리</option>
-    </select>
-
-    <label>제목</label>
-    <input type="text" id="titleInput" required />
-
-    <label>내용</label>
-    <textarea id="contentInput" rows="4" required></textarea>
-
-    <button type="submit">작성하기</button>
-  </form>
-
-  <h2>작성된 글</h2>
+  <h2>글 목록</h2>
   <div id="postList"></div>
 
-  <script>
-    const postForm = document.getElementById('postForm');
-    const postList = document.getElementById('postList');
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
-    function loadPosts() {
-      const posts = JSON.parse(localStorage.getItem('posts') || '[]');
-      postList.innerHTML = '';
-      posts.reverse().forEach((post, index) => {
-        const div = document.createElement('div');
-        div.className = 'post';
-        div.innerHTML = `
-          <strong>[${post.club}] ${post.title}</strong><br>
-          <p>${post.content}</p>
-          <small>${new Date(post.date).toLocaleString()}</small>
-        `;
-        postList.appendChild(div);
+  <script>
+    // Firebase 설정 (자신의 프로젝트 설정으로 대체)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAE-F6VgqG6d1VNoKe0WIbxvdQ9moyZEAA",
+      authDomain: "dongari-37dc3.firebaseapp.com",
+      projectId: "dongari-37dc3",
+    };
+
+    // Firebase 초기화
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // 글 작성 함수
+    function submitPost() {
+      const title = document.getElementById('title').value;
+      const content = document.getElementById('content').value;
+
+      db.collection("posts").add({
+        title,
+        content,
+        date: new Date()
+      }).then(() => {
+        alert("작성 완료");
+        loadPosts();
       });
     }
 
-    postForm.addEventListener('submit', function (e) {
-      e.preventDefault();
+    // 글 목록 불러오기
+    function loadPosts() {
+      const postList = document.getElementById('postList');
+      postList.innerHTML = '';
+      db.collection("posts").orderBy("date", "desc").get().then((querySnapshot) => {
+        querySnapshot.forEach((doc) => {
+          const data = doc.data();
+          postList.innerHTML += `<div><strong>${data.title}</strong><p>${data.content}</p></div><hr>`;
+        });
+      });
+    }
 
-      const club = document.getElementById('clubSelect').value;
-      const title = document.getElementById('titleInput').value;
-      const content = document.getElementById('contentInput').value;
-
-      const post = {
-        club,
-        title,
-        content,
-        date: new Date().toISOString()
-      };
-
-      const posts = JSON.parse(localStorage.getItem('posts') || '[]');
-      posts.push(post);
-      localStorage.setItem('posts', JSON.stringify(posts));
-
-      postForm.reset();
-      loadPosts();
-    });
-
-    // 초기 로드
-    loadPosts();
+    // 페이지 로딩 시 게시글 불러오기
+    window.onload = loadPosts;
   </script>
+
+
+
+
+
+
 </body>
 </html>
