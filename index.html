@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>동아리 홍보 게시판</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+    h1, h2 { color: #333; }
+    textarea, input, select { width: 100%; padding: 8px; margin-top: 5px; margin-bottom: 15px; }
+    button { padding: 10px 20px; cursor: pointer; }
+    .post { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1>동아리 홍보 게시판</h1>
+
+  <form id="postForm">
+    <label>동아리 선택</label>
+    <select id="clubSelect" required>
+      <option value="">-- 동아리를 선택하세요 --</option>
+      <option value="개발 동아리">개발 동아리</option>
+      <option value="디자인 동아리">디자인 동아리</option>
+      <option value="음악 동아리">음악 동아리</option>
+      <option value="사진 동아리">사진 동아리</option>
+    </select>
+
+    <label>제목</label>
+    <input type="text" id="titleInput" required />
+
+    <label>내용</label>
+    <textarea id="contentInput" rows="4" required></textarea>
+
+    <button type="submit">작성하기</button>
+  </form>
+
+  <h2>작성된 글</h2>
+  <div id="postList"></div>
+
+  <script>
+    const postForm = document.getElementById('postForm');
+    const postList = document.getElementById('postList');
+
+    function loadPosts() {
+      const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      postList.innerHTML = '';
+      posts.reverse().forEach((post, index) => {
+        const div = document.createElement('div');
+        div.className = 'post';
+        div.innerHTML = `
+          <strong>[${post.club}] ${post.title}</strong><br>
+          <p>${post.content}</p>
+          <small>${new Date(post.date).toLocaleString()}</small>
+        `;
+        postList.appendChild(div);
+      });
+    }
+
+    postForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const club = document.getElementById('clubSelect').value;
+      const title = document.getElementById('titleInput').value;
+      const content = document.getElementById('contentInput').value;
+
+      const post = {
+        club,
+        title,
+        content,
+        date: new Date().toISOString()
+      };
+
+      const posts = JSON.parse(localStorage.getItem('posts') || '[]');
+      posts.push(post);
+      localStorage.setItem('posts', JSON.stringify(posts));
+
+      postForm.reset();
+      loadPosts();
+    });
+
+    // 초기 로드
+    loadPosts();
+  </script>
+</body>
+</html>
